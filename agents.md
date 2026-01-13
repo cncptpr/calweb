@@ -14,5 +14,5 @@ Checking of tasks is most important, though creating and editing shoud be possib
 The UI should be a list of all TODOs, with checkboxes right there. Clicking on a task should redirect you.
 Try to store as much state as possible in the url.
 
-Work with a TODO list. Regularly run `npm run build` and fix all errors.
-These instuctions are written
+Work with a TODO list. Regularly run `npm run build` and fix all typescript errors.
+These instuctions are written in agents.md.
