@@ -2,7 +2,6 @@ import * as React from 'react';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/react-start';
 import { TodoList } from '../components/TodoList';
-import { Todo } from '../types';
 import { listTodos as caldavListTodos, addTodo as caldavAddTodo, updateTodo as caldavUpdateTodo, deleteTodo as caldavDeleteTodo } from '../server/caldavService';
 
 export const listTodos = createServerFn({ method: 'GET' })
@@ -34,7 +33,7 @@ export const Route = createFileRoute('/')({
 
 function TodoApp() {
   const router = useRouter();
-  const loadedTodos = Route.useLoaderData() as Todo[];
+  const loadedTodos = Route.useLoaderData();
   // Sorted: active on top, completed at bottom
   const sorted = [
     ...loadedTodos.filter(t => !t.completed),
@@ -58,12 +57,13 @@ function TodoApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen flex flex-col bg-gray-100">
       <header className="p-4 text-center text-xl font-bold">TODOs</header>
-      <div className="flex justify-center pt-2">
+      <TodoList todos={sorted} onToggle={handleToggle} onEdit={handleEdit} onDelete={handleDelete} />
+      
+      <div className="mt-auto flex justify-center p-4 sticky bottom-0 bg-white">
         <AddTodo />
       </div>
-      <TodoList todos={sorted} onToggle={handleToggle} onEdit={handleEdit} onDelete={handleDelete} />
     </div>
   );
 }
