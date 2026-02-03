@@ -25,6 +25,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.18",
+    "ts-caldav": "^0.2.7",
     "tsdav": "^2.1.6",
     "vite-tsconfig-paths": "^6.0.2"
   },
