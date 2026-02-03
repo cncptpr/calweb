@@ -28,11 +28,10 @@ export const TodoStore = {
     TodoStore._data.set(todo.id, todo);
     if (storedTodo === undefined || todo.completed !== storedTodo.completed) {
       TodoStore._listeners.forEach((cb) => cb(TodoStore.list()));
-    } else {
-      TodoStore._subscribers
-        .get(todo.id)
-        ?.forEach((cb) => cb(TodoStore.get(todo.id)));
     }
+    TodoStore._subscribers
+      .get(todo.id)
+      ?.forEach((cb) => cb(TodoStore.get(todo.id)));
   },
   setMany: (todos: Todo[]) => {
     todos.forEach((todo) => TodoStore.set(todo));

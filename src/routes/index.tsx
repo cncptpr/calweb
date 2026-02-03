@@ -9,11 +9,7 @@ export const Route = createFileRoute("/")({
 });
 
 function TodoApp() {
-  const todos = useTodos();
-  const sorted = [
-    ...todos.filter((t) => !t.completed),
-    ...todos.filter((t) => t.completed),
-  ];
+
 
   React.useEffect(() => {
     console.log("Filling Store");
@@ -43,12 +39,10 @@ function TodoApp() {
     <div className="min-h-screen flex flex-col bg-gray-100">
       <header className="p-4 text-center text-xl font-bold">TODOs</header>
       <TodoList
-        todos={sorted}
         onToggle={handleToggle}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
-
       <div className="mt-auto flex justify-center p-4 sticky bottom-0 bg-white">
         <AddTodo />
       </div>
