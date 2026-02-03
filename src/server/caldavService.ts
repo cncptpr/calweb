@@ -45,12 +45,6 @@ async function getCalendar(client: CalDAVClient): Promise<Calendar> {
   return _calendar;
 }
 
-function dateToISOStringOrNow(date: Date | string | undefined): string {
-  if (!date) return new Date().toISOString();
-  if (typeof date === "string") return date;
-  return date.toISOString();
-}
-
 export async function listTodos(): Promise<Todo[]> {
   console.log("Listing todos from CalDAV");
   const client = await getClient();
@@ -60,8 +54,6 @@ export async function listTodos(): Promise<Todo[]> {
     id: todo.uid,
     title: todo.summary || "",
     completed: todo.status === "COMPLETED" || !!todo.completed,
-    createdAt: dateToISOStringOrNow(todo.completed),
-    updatedAt: dateToISOStringOrNow(todo.completed),
   }));
 }
 
@@ -69,7 +61,6 @@ export async function addTodo(title: string): Promise<Todo> {
   console.log("Adding todo with title:", title);
   const client = await getClient();
   const calendar = await getCalendar(client);
-  const now = new Date().toISOString();
   const uid = (Date.now() + Math.random()).toString(36);
   await client.createTodo(calendar.url, {
     summary: title,
@@ -80,8 +71,6 @@ export async function addTodo(title: string): Promise<Todo> {
     id: uid,
     title,
     completed: false,
-    createdAt: now,
-    updatedAt: now,
   };
 }
 
@@ -105,8 +94,6 @@ export async function updateTodo(
     id: todo.uid,
     title: todo.summary || "",
     completed: todo.status === "COMPLETED" || !!todo.completed,
-    createdAt: dateToISOStringOrNow(todo.completed),
-    updatedAt: dateToISOStringOrNow(todo.completed),
   };
 }
 

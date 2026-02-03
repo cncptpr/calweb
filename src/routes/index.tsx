@@ -34,7 +34,6 @@ export const Route = createFileRoute('/')({
 function TodoApp() {
   const router = useRouter();
   const loadedTodos = Route.useLoaderData();
-  // Sorted: active on top, completed at bottom
   const sorted = [
     ...loadedTodos.filter(t => !t.completed),
     ...loadedTodos.filter(t => t.completed)
@@ -53,6 +52,7 @@ function TodoApp() {
   }
   async function handleDelete(id: string) {
     await deleteTodo({ data: { id } });
+    console.log("Deleted todo", id);
     router.invalidate();
   }
 

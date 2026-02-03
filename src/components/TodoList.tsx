@@ -19,7 +19,7 @@ export function TodoList({ todos, onToggle, onEdit, onDelete }: {
                 className="mr-2"
                 aria-label={todo.completed ? 'Mark incomplete' : 'Mark complete'}
               >
-                <span className={`inline-block w-5 h-5 border rounded-full flex items-center justify-center ${todo.completed ? 'bg-green-400 border-green-400' : 'border-gray-400'}`}>
+                <span className={`w-5 h-5 border rounded-full flex items-center justify-center ${todo.completed ? 'bg-green-400 border-green-400' : 'border-gray-400'}`}>
                   {todo.completed ? <span className="text-white">✓</span> : ''}
                 </span>
               </button>
