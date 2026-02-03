@@ -1,18 +1,17 @@
-This is a tanstack start project.
+This is a tanstack start project using tailwind.
 
-You task is to build a TODO webinterface for a CardDav Server
+You task is to make this project a TODO service for a given CalDav Server. 
 
-The backend has will hold the credentials to the CardDav server.
+The frontend should be a mobile friendly website, to mainly view and check the todos. It should have some editing capability too.
+
+The backend will hold the credentials to the CalDav server.
 Everyone using this app should see the same TODOs.
-This meens fast syncing is very important.
+This means fast syncing is very important. 
+The server will act as a Proxy for the CalDav server. Enabling realtime live sync over websocket, while keeping the CalDav server up to date.
 
 For now, there is no login required.
 
-It should be a simple, mainly mobile friendly UI.
-Checking of tasks is most important, though creating and editing shoud be possible.
+Regularly run `npm run check` and fix all typescript errors.
+Tailwind is setup, use it.
 
-The UI should be a list of all TODOs, with checkboxes right there. Clicking on a task should redirect you.
-Try to store as much state as possible in the url.
-
-Work with a TODO list. Regularly run `npm run build` and fix all typescript errors.
-These instuctions are written in agents.md.
+Completed todos should always be shown, but appear at the end of the list, and be displayed with a strike-through title.

@@ -31,7 +31,10 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 })
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient()
   return (
     <html lang="en">
       <head>
@@ -39,7 +42,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <Header />
-        {children}
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
@@ -56,3 +61,4 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     </html>
   )
 }
+

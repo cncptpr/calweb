@@ -67,7 +67,7 @@ function Home() {
     <div>
       <h1>Start Server Functions - Todo Example</h1>
       <ul>
-        {todos?.map((t) => (
+        {todos?.map((t: any) => (
           <li key={t.id}>{t.name}</li>
         ))}
       </ul>
