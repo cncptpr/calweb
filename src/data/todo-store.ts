@@ -1,13 +1,37 @@
 import { Todo } from "@/types";
 import React from "react";
 
+type Id = string;
+
+type OrderSubscriber = {
+  orderFn: (todos: Todo[]) => Id[];
+  cb: (todos: string[]) => void;
+  lastOrder: Id[];
+};
+
+const ordersEqual = (as: Id[], bs: Id[]) => {
+  if (as.length != bs.length) return false;
+  for (let i = 0; i < as.length; i++) {
+    if (as[i] != bs[i]) return false;
+  }
+  return true;
+};
+
+const callOrderSubscriber = (subscriber: OrderSubscriber) => {
+  const order = TodoStore.getInOrder(subscriber.orderFn);
+  if (!ordersEqual(order, subscriber.lastOrder)) {
+    subscriber.lastOrder = order;
+    subscriber.cb(order);
+  }
+};
+
 export const TodoStore = {
-  _data: new Map<string, Todo>(),
-  _subscribers: new Map<string, Set<(todo: Todo) => void>>(),
-  _listeners: new Set<(todos: Todo[]) => void>(),
-  has: (id: string) => TodoStore._data.has(id),
-  get: (id: string) => ({ ...TodoStore._data.get(id)! }),
-  subscribe: (id: string, cb: (todo: Todo) => void): (() => void) => {
+  _data: new Map<Id, Todo>(),
+  _subscribers: new Map<Id, Set<(todo: Todo) => void>>(),
+  _orderSubscribers: new Set<OrderSubscriber>(),
+  has: (id: Id) => TodoStore._data.has(id),
+  get: (id: Id) => ({ ...TodoStore._data.get(id)! }),
+  subscribe: (id: Id, cb: (todo: Todo) => void): (() => void) => {
     if (!TodoStore._subscribers.has(id)) {
       TodoStore._subscribers.set(id, new Set());
     }
@@ -17,21 +41,26 @@ export const TodoStore = {
     };
   },
   list: () => Array.from(TodoStore._data.values()).map((todo) => ({ ...todo })),
-  listenAll: (cb: (todos: Todo[]) => void): (() => void) => {
-    TodoStore._listeners.add(cb);
-    return () => {
-      TodoStore._listeners.delete(cb);
+  getInOrder: (orderFn: (todos: Todo[]) => Id[]) => orderFn(TodoStore.list()),
+  subscribeToOrder: (
+    orderFn: (todos: Todo[]) => Id[],
+    cb: (todos: Id[]) => void,
+    lastOrder?: Id[],
+  ): (() => void) => {
+    const subscriber = {
+      cb,
+      orderFn,
+      lastOrder: lastOrder ?? TodoStore.getInOrder(orderFn),
     };
+    TodoStore._orderSubscribers.add(subscriber);
+    return () => TodoStore._orderSubscribers.delete(subscriber);
   },
   set: (todo: Todo) => {
-    const storedTodo = TodoStore.get(todo.id);
     TodoStore._data.set(todo.id, todo);
-    if (storedTodo === undefined || todo.completed !== storedTodo.completed) {
-      TodoStore._listeners.forEach((cb) => cb(TodoStore.list()));
-    }
     TodoStore._subscribers
       .get(todo.id)
       ?.forEach((cb) => cb(TodoStore.get(todo.id)));
+    TodoStore._orderSubscribers.forEach(callOrderSubscriber);
   },
   setMany: (todos: Todo[]) => {
     todos.forEach((todo) => TodoStore.set(todo));
@@ -39,13 +68,13 @@ export const TodoStore = {
   delete: (id: string) => {
     if (TodoStore._data.has(id)) {
       TodoStore._data.delete(id);
-      TodoStore._listeners.forEach((cb) => cb(TodoStore.list()));
+      TodoStore._orderSubscribers.forEach(callOrderSubscriber);
     }
   },
   replaceWith: (todos: Todo[]) => {
     TodoStore._data.clear();
     todos.forEach((todo) => TodoStore._data.set(todo.id, todo));
-    TodoStore._listeners.forEach((cb) => cb(TodoStore.list()));
+    TodoStore._orderSubscribers.forEach(callOrderSubscriber);
   },
 };
 
@@ -57,13 +86,12 @@ export const useTodo = (id: string) => {
   return todo;
 };
 
-export const useTodos = () => {
-  const [todos, setTodos] = React.useState<Todo[]>(TodoStore.list());
+export const useOrder = (orderFn: (todo: Todo[]) => Id[]) => {
+  const [order, setOrder] = React.useState<Id[]>(TodoStore.getInOrder(orderFn));
   React.useEffect(() => {
-    return TodoStore.listenAll((todos) => {
-      console.log("listenAll Called");
-      setTodos(todos);
+    return TodoStore.subscribeToOrder(orderFn, (order) => {
+      setOrder(order);
     });
   }, []);
-  return todos;
+  return order;
 };

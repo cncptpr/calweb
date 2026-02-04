@@ -2,7 +2,7 @@ import * as React from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { addTodo, deleteTodo, listTodos, updateTodo } from "@/data/todos";
 import { TodoList } from "@/components/TodoList";
-import { TodoStore, useTodos } from "@/data/todo-store";
+import { TodoStore, useOrder } from "@/data/todo-store";
 
 export const Route = createFileRoute("/")({
   component: TodoApp,
