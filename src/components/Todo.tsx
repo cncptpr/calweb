@@ -1,19 +1,14 @@
 import { useTodo } from "@/data/todo-store";
 
-export default function Todo(props: {
-  id: string;
-  onToggle: () => void;
-  onEdit: (title: string) => void;
-  onDelete: () => void;
-}) {
-  const todo = useTodo(props.id);
+export default function Todo(props: { id: string }) {
+  const { todo, toggle, edit, remove } = useTodo(props.id);
   return (
     <li
       key={todo.id}
       className="flex items-center justify-between bg-white p-3 rounded shadow"
     >
       <button
-        onClick={() => props.onToggle()}
+        onClick={() => toggle()}
         className="mr-2"
         aria-label={todo.completed ? "Mark incomplete" : "Mark complete"}
       >
@@ -32,8 +27,7 @@ export default function Todo(props: {
         className="ml-2 text-blue-500 hover:text-blue-700 px-2 py-1"
         onClick={() => {
           const newTitle = prompt("Edit todo:", todo.title);
-          if (newTitle !== null && newTitle !== todo.title)
-            props.onEdit(newTitle);
+          if (newTitle !== null && newTitle !== todo.title) edit(newTitle);
         }}
         aria-label="Edit"
       >
@@ -42,7 +36,7 @@ export default function Todo(props: {
       <button
         className="ml-2 text-red-500 hover:text-red-700 px-2 py-1"
         onClick={() => {
-          if (confirm("Delete todo?")) props.onDelete();
+          if (confirm("Delete todo?")) remove();
         }}
         aria-label="Delete"
       >

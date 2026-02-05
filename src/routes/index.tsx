@@ -15,34 +15,11 @@ function TodoApp() {
     console.log("Filling Store");
     listTodos().then(TodoStore.replaceWith);
   }, []);
-  async function handleToggle(id: string) {
-    console.log("Toggling ", id);
-    const todo = TodoStore.get(id);
-    if (!todo) return;
-    todo.completed = !todo.completed;
-    TodoStore.set(todo);
-    await updateTodo({ data: { id, completed: todo.completed } });
-  }
-  async function handleEdit(id: string, title: string) {
-    const todo = TodoStore.get(id);
-    if (!todo) return;
-    todo.title = title;
-    TodoStore.set(todo);
-    await updateTodo({ data: { id, title } });
-  }
-  async function handleDelete(id: string) {
-    TodoStore.delete(id);
-    await deleteTodo({ data: { id } });
-  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <header className="p-4 text-center text-xl font-bold">TODOs</header>
-      <TodoList
-        onToggle={handleToggle}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      <TodoList />
       <div className="mt-auto flex justify-center p-4 sticky bottom-0 bg-white">
         <AddTodo />
       </div>

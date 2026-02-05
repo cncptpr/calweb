@@ -1,15 +1,7 @@
 import { useOrder } from "@/data/todo-store";
 import Todo from "@/components/Todo";
 
-export function TodoList({
-  onToggle,
-  onEdit,
-  onDelete,
-}: {
-  onToggle: (id: string) => void;
-  onEdit: (id: string, title: string) => void;
-  onDelete: (id: string) => void;
-}) {
+export function TodoList() {
   const order = useOrder((todos) =>
     [
       ...todos.filter((t) => !t.completed),
@@ -23,13 +15,7 @@ export function TodoList({
       ) : (
         <ul className="space-y-2">
           {order.map((id) => (
-            <Todo
-              id={id}
-              key={id}
-              onToggle={() => onToggle(id)}
-              onEdit={(title) => onEdit(id, title)}
-              onDelete={() => onDelete(id)}
-            ></Todo>
+            <Todo id={id} key={id}></Todo>
           ))}
         </ul>
       )}
