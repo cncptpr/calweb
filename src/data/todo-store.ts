@@ -1,6 +1,6 @@
 import { Todo } from "@/types";
 import React from "react";
-import { deleteTodo, updateTodo } from "./todos";
+import { deleteTodo, getTodoStream, updateTodo } from "./todos";
 
 type Id = string;
 
@@ -113,3 +113,28 @@ export const useOrder = (orderFn: (todo: Todo[]) => Id[]) => {
   }, []);
   return order;
 };
+
+setTimeout(async () => {
+  const stream = await getTodoStream();
+  const reader = stream.getReader();
+
+  while (true) {
+    const result = await reader.read();
+    if (result.done) break;
+    const update = result.value!;
+    switch (update.type) {
+      case "one": {
+        TodoStore.set(update.todo);
+        break;
+      }
+      case "batch": {
+        TodoStore.setMany(update.todos);
+        break;
+      }
+      case "all": {
+        TodoStore.replaceWith(update.todos);
+        break;
+      }
+    }
+  }
+}, 10);
