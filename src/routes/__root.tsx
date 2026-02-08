@@ -1,8 +1,12 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import React from 'react'
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import appCss from '../styles.css?url'
+import { todoStore, TodoStoreContext } from '@/data/store'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -29,8 +33,6 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 })
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-
 function RootDocument({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient()
   return (
@@ -40,7 +42,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <QueryClientProvider client={queryClient}>
-          {children}
+          <TodoStoreContext.Provider value={todoStore}>
+            {children}
+          </TodoStoreContext.Provider>
         </QueryClientProvider>
         <TanStackDevtools
           config={{

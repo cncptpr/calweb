@@ -1,7 +1,7 @@
 import { CalDAVClient, Calendar } from "ts-caldav";
 import dotenv from "dotenv";
-import { Todo, TodoUpdate } from "../types";
 import { createServerOnlyFn } from "@tanstack/react-start";
+import { Todo } from "@/data/todos";
 
 dotenv.config();
 

@@ -1,8 +1,10 @@
-import { useOrder } from "@/data/todo-store";
-import Todo from "@/components/Todo";
+import { useOrder } from "@/data/todos";
+import TodoItem from "@/components/TodoItem";
+import { useTodoStore } from "@/data/store";
 
 export function TodoList() {
-  const order = useOrder((todos) =>
+  const store = useTodoStore()
+  const order = useOrder(store, (todos) =>
     [
       ...todos.filter((t) => !t.completed),
       ...todos.filter((t) => t.completed),
@@ -15,7 +17,7 @@ export function TodoList() {
       ) : (
         <ul className="space-y-2">
           {order.map((id) => (
-            <Todo id={id} key={id}></Todo>
+            <TodoItem id={id} key={id}></TodoItem>
           ))}
         </ul>
       )}

@@ -1,21 +1,13 @@
 import * as React from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { addTodo, deleteTodo, listTodos, updateTodo } from "@/data/todos";
+import { addTodo } from "@/data/todos";
 import { TodoList } from "@/components/TodoList";
-import { TodoStore, useOrder } from "@/data/todo-store";
 
 export const Route = createFileRoute("/")({
   component: TodoApp,
 });
 
 function TodoApp() {
-
-
-  React.useEffect(() => {
-    console.log("Filling Store");
-    listTodos().then(TodoStore.replaceWith);
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <header className="p-4 text-center text-xl font-bold">TODOs</header>
