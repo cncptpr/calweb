@@ -1,17 +1,14 @@
 import React from "react";
 import {
-  deleteTodo,
   get,
   getOrder,
   Id,
-  remove,
+  optimisicUpdate,
   subscribe,
-  upda
-  subscribeToOrder,
   Todo,
   TodoStore,
-  updateTodo,
 } from "./todos";
+import { subscribeToOrder } from "./subscribeToOrder";
 
 export function useTodo(store: TodoStore, id: string) {
   const [todo, setTodo] = React.useState<Todo>(get(store, id)!);
@@ -23,16 +20,17 @@ export function useTodo(store: TodoStore, id: string) {
     todo,
     toggle: async () => {
       const completed = !todo.completed;
-      set(store, { ...todo, completed });
-      await updateTodo({ data: { id, completed } });
+      await optimisicUpdate(store, {
+        type: "mutate",
+        id,
+        change: { completed },
+      });
     },
     edit: async (title: string) => {
-      set(store, { ...todo, title });
-      await updateTodo({ data: { id, title } });
+      await optimisicUpdate(store, { type: "mutate", id, change: { title } });
     },
     remove: async () => {
-      remove(store, id);
-      await deleteTodo({ data: { id } });
+      await optimisicUpdate(store, { type: "delete", id });
     },
   };
 }

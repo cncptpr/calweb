@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import * as caldav from "../server/caldavService";
 import { distributor } from "@/server/distributeService";
-import { todoStore } from "./store";
 
 export type Id = string;
 
@@ -96,24 +95,13 @@ export function getOrder(
   return orderFn(getAll(store));
 }
 
-export function subscribeToOrder(
-  store: TodoStore,
-  orderFn: (todos: Todo[]) => Id[],
-  cb: (todos: Id[]) => void,
-  lastOrder?: Id[],
-): () => void {
-  const subscriber: OrderSubscriber = {
-    cb,
-    orderFn,
-    lastOrder: lastOrder ?? getOrder(store, orderFn),
-  };
-  store._orderSubscribers.add(subscriber);
-  return function unsubscribe() {
-    store._orderSubscribers.delete(subscriber);
-  };
+export function serverUpdate(store: TodoStore, todoUpdate: TodoUpdate) {
+  update(store, todoUpdate);
 }
 
-export function optimisicUpdate(store: TodoStore, update: TodoUpdate) {}
+export function optimisicUpdate(store: TodoStore, todoUpdate: TodoUpdate) {
+  update(store, todoUpdate);
+}
 
 function update(store: TodoStore, update: TodoUpdate): void {
   function rec(store: TodoStore, update: TodoUpdate) {
@@ -167,21 +155,6 @@ function notifyIfChanged(store: TodoStore, now: Todo, old: Todo | undefined) {
   }
 }
 
-export function setMany(store: TodoStore, todos: Todo[]): void {
-  todos.forEach((todo) => {
-    store._data.set(todo.id, todo);
-    store._subscribers.get(todo.id)?.forEach((cb) => cb(get(store, todo.id)!));
-  });
-  store._orderSubscribers.forEach((s) => callOrderSubscriber(store, s));
-}
-
-export function remove(store: TodoStore, id: Id): void {
-  if (store._data.has(id)) {
-    store._data.delete(id);
-    store._orderSubscribers.forEach((s) => callOrderSubscriber(store, s));
-  }
-}
-
 function replace(store: TodoStore, todos: Todo[]): void {
   store._data.clear();
   todos.forEach((t) => store._data.set(t.id, t));
@@ -225,31 +198,6 @@ export const fetchTodos = createServerFn().handler(
   async () => await caldav.listTodos(),
 );
 
-export const addTodo = createServerFn()
-  .inputValidator((input: { title: string }) => input)
-  .handler(async ({ data }) => {
-    const todo = await caldav.addTodo(data.title);
-    distributor.enqueue({ type: "one", todo });
-    return todo;
-  });
-
-export const updateTodo = createServerFn()
-  .inputValidator(
-    (input: { id: string; title?: string; completed?: boolean }) => input,
-  )
-  .handler(async ({ data }) => {
-    const todo = await caldav.updateTodo(data.id, {
-      title: data.title,
-      completed: data.completed,
-    });
-    console.log("[DEBUG] Sending todo to clients", todo);
-    distributor.enqueue({ type: "one", todo });
-    return todo;
-  });
-
-export const deleteTodo = createServerFn()
-  .inputValidator((input: { id: string }) => input)
-  .handler(async ({ data }) => {
-    await caldav.deleteTodo(data.id);
-    return { id: data.id };
-  });
+export function generateId() {
+  return (Date.now() + Math.random()).toString(36);
+}

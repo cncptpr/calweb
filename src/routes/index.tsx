@@ -1,7 +1,8 @@
 import * as React from "react";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { addTodo } from "@/data/todos";
+import { createFileRoute } from "@tanstack/react-router";
 import { TodoList } from "@/components/TodoList";
+import { useTodoStore } from "@/data/store";
+import { generateId, optimisicUpdate } from "@/data/todos";
 
 export const Route = createFileRoute("/")({
   component: TodoApp,
@@ -20,13 +21,12 @@ function TodoApp() {
 }
 
 function AddTodo() {
-  const router = useRouter();
+  const store = useTodoStore()
   const [text, setText] = React.useState("");
   async function onAdd(title: string) {
     if (title.trim().length) {
-      await addTodo({ data: { title: title.trim() } });
+      optimisicUpdate(store, {type:"add", todo: {id: generateId(), title: title.trim(), completed:false}})
       setText("");
-      router.invalidate();
     }
   }
   return (
