@@ -1,41 +1,26 @@
-import { TodoUpdate } from "@/data/todos";
+import * as Todo from "@/data/todos";
+import { todoStore } from "@/data/store";
+import { createServerFn } from "@tanstack/react-start";
 
-export class Distributor {
-  private stream: ReadableStream<TodoUpdate>;
-  private controller: ReadableStreamDefaultController<TodoUpdate>;
+export const sendUpdate = createServerFn()
+  .inputValidator((update: Todo.TodoUpdate) => update)
+  .handler(({ data }) => {
+    Todo.update(todoStore, data);
+  });
 
-  private constructor(
-    stream: ReadableStream<TodoUpdate>,
-    controller: ReadableStreamDefaultController<TodoUpdate>,
-  ) {
-    this.stream = stream;
-    this.controller = controller;
-  }
-
-  static async new() {
-    console.log("[DEBUG] creating Distributor");
-    const { stream, controller } = await new Promise<{
-      stream: ReadableStream<TodoUpdate>;
-      controller: ReadableStreamDefaultController<TodoUpdate>;
-    }>((resolve) => {
-      const stream = new ReadableStream<TodoUpdate>({
-        pull(controller) {
-          resolve({ stream, controller });
-        },
-      });
-    });
-
-    return new Distributor(stream, controller);
-  }
-
-  getSteam() {
-    const [stream1, stream2] = this.stream.tee();
-    this.stream = stream1;
-    return stream2;
-  }
-  enqueue(update: TodoUpdate) {
-    this.controller.enqueue(update);
-  }
+export function getSteam(): ReadableStream {
+  console.log("[DEBUG] creating Distributor");
+  const listener = Todo.addListener(todoStore);
+  const stream = new ReadableStream<Todo.TodoUpdate>({
+    pull(controller) {
+      listener.handler = (update) => {
+        controller.enqueue(update);
+      };
+    },
+    cancel() {
+      Todo.removeListener(todoStore, listener);
+      console.log("Removed Listener");
+    },
+  });
+  return stream;
 }
-
-export const distributor = await Distributor.new();

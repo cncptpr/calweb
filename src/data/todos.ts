@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import * as caldav from "../server/caldavService";
-import { distributor } from "@/server/distributeService";
+import { getSteam as getStream, sendUpdate } from "@/server/distributeService";
 
 export type Id = string;
 
@@ -27,7 +27,7 @@ export type OrderSubscriber = {
 };
 
 export type Listener = {
-  handler: (update: TodoUpdate) => void;
+  handler?: (update: TodoUpdate) => void;
 };
 
 /**
@@ -101,9 +101,10 @@ export function serverUpdate(store: TodoStore, todoUpdate: TodoUpdate) {
 
 export function optimisicUpdate(store: TodoStore, todoUpdate: TodoUpdate) {
   update(store, todoUpdate);
+  sendUpdate({ data: todoUpdate });
 }
 
-function update(store: TodoStore, update: TodoUpdate): void {
+export function update(store: TodoStore, update: TodoUpdate): void {
   function rec(store: TodoStore, update: TodoUpdate) {
     switch (update.type) {
       case "replace": {
@@ -147,6 +148,7 @@ function update(store: TodoStore, update: TodoUpdate): void {
     s.lastOrder = order;
     s.cb(order);
   });
+  store._listeners.forEach((l) => l.handler?.call(l.handler, update));
 }
 
 function notifyIfChanged(store: TodoStore, now: Todo, old: Todo | undefined) {
@@ -161,8 +163,10 @@ function replace(store: TodoStore, todos: Todo[]): void {
   store._orderSubscribers.forEach((s) => callOrderSubscriber(store, s));
 }
 
-export function addListener(store: TodoStore, l: Listener): void {
+export function addListener(store: TodoStore): Listener {
+  const l = {};
   store._listeners.add(l);
+  return l;
 }
 export function removeListener(store: TodoStore, l: Listener): void {
   store._listeners.delete(l);
@@ -190,9 +194,7 @@ function callOrderSubscriber(store: TodoStore, subscriber: OrderSubscriber) {
   }
 }
 
-export const getTodoStream = createServerFn().handler(() =>
-  distributor.getSteam(),
-);
+export const getTodoStream = createServerFn().handler(() => getStream());
 
 export const fetchTodos = createServerFn().handler(
   async () => await caldav.listTodos(),

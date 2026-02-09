@@ -1,4 +1,4 @@
 [[language]]
 name = "typescript"
 auto-format = true
-formatter = { command = "npx", args = ["prettier", "--parser", "typescript"]}
+formatter = { command = "pnpx", args = ["prettier", "--parser", "typescript"]}
