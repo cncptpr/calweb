@@ -8,7 +8,7 @@ export function useTodoStore() {
   return React.useContext(TodoStoreContext);
 }
 
-Todo.listTodos().then((todos) => Todo.replaceWith(todoStore, todos));
+Todo.fetchTodos().then((todos) => Todo.replace(todoStore, todos));
 setTimeout(async () => {
   const stream = await Todo.getTodoStream();
   const reader = stream.getReader();
@@ -27,7 +27,7 @@ setTimeout(async () => {
         break;
       }
       case "all": {
-        Todo.replaceWith(todoStore, update.todos);
+        Todo.replace(todoStore, update.todos);
         break;
       }
     }

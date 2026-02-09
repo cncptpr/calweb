@@ -1,8 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import * as caldav from "../server/caldavService";
 import { distributor } from "@/server/distributeService";
-
-import React from "react";
+import { todoStore } from "./store";
 
 export type Id = string;
 
@@ -12,14 +11,24 @@ export interface Todo {
   completed: boolean;
 }
 
+export type TodoSingleUpdate =
+  | { type: "set" | "add"; todo: Todo }
+  | { type: "mutate"; id: Id; change: Partial<Omit<Todo, "id">> }
+  | { type: "delete"; id: Id };
+
 export type TodoUpdate =
-  | { type: "one"; todo: Todo }
-  | { type: "batch" | "all"; todos: Todo[] };
+  | { type: "replace"; todos: Todo[] }
+  | { type: "batch"; updates: TodoSingleUpdate[] }
+  | TodoSingleUpdate;
 
 export type OrderSubscriber = {
   orderFn: (todos: Todo[]) => Id[];
   cb: (todos: Id[]) => void;
   lastOrder: Id[];
+};
+
+export type Listener = {
+  handler: (update: TodoUpdate) => void;
 };
 
 /**
@@ -104,8 +113,58 @@ export function subscribeToOrder(
   };
 }
 
-export function set(store: TodoStore, todo: Todo): void {
-  setMany(store, [todo]);
+export function optimisicUpdate(store: TodoStore, update: TodoUpdate) {}
+
+function update(store: TodoStore, update: TodoUpdate): void {
+  function rec(store: TodoStore, update: TodoUpdate) {
+    switch (update.type) {
+      case "replace": {
+        replace(store, update.todos);
+        break;
+      }
+      case "batch": {
+        update.updates.forEach((u) => rec(store, u));
+        break;
+      }
+      case "set":
+      case "add": {
+        const todo = store._data.get(update.todo.id);
+        store._data.set(update.todo.id, update.todo);
+        notifyIfChanged(store, update.todo, todo);
+        break;
+      }
+      case "mutate": {
+        const todo = store._data.get(update.id);
+        if (!todo) {
+          console.log("[Error] Mutation of not exisiting todo! Ignoring...");
+          return;
+        }
+        const updatedTodo = { ...todo, ...update.change };
+        store._data.set(update.id, updatedTodo);
+        notifyIfChanged(store, updatedTodo, todo);
+        break;
+      }
+      case "delete": {
+        store._data.delete(update.id);
+        break;
+      }
+      default:
+        update satisfies never;
+    }
+  }
+  rec(store, update);
+  store._orderSubscribers.forEach((s) => {
+    const order = getOrder(store, s.orderFn);
+    if (ordersEqual(order, s.lastOrder)) return;
+    s.lastOrder = order;
+    s.cb(order);
+  });
+}
+
+function notifyIfChanged(store: TodoStore, now: Todo, old: Todo | undefined) {
+  if (!todosEqual(now, old)) {
+    store._subscribers.get(now.id)?.forEach((cb) => cb(now));
+  }
 }
 
 export function setMany(store: TodoStore, todos: Todo[]): void {
@@ -123,7 +182,7 @@ export function remove(store: TodoStore, id: Id): void {
   }
 }
 
-export function replaceWith(store: TodoStore, todos: Todo[]): void {
+function replace(store: TodoStore, todos: Todo[]): void {
   store._data.clear();
   todos.forEach((t) => store._data.set(t.id, t));
   store._orderSubscribers.forEach((s) => callOrderSubscriber(store, s));
@@ -136,10 +195,16 @@ export function removeListener(store: TodoStore, l: Listener): void {
   store._listeners.delete(l);
 }
 
-function ordersEqual(as: Id[], bs: Id[]) {
-  if (as.length != bs.length) return false;
-  for (let i = 0; i < as.length; i++) {
-    if (as[i] != bs[i]) return false;
+function todosEqual(a: Todo | undefined, b: Todo | undefined) {
+  return (
+    a && b && a.id == b.id && a.title == b.title && a.completed == b.completed
+  );
+}
+
+function ordersEqual(a: Id[], b: Id[]) {
+  if (a.length != b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
   }
   return true;
 }
@@ -152,19 +217,15 @@ function callOrderSubscriber(store: TodoStore, subscriber: OrderSubscriber) {
   }
 }
 
-export type Listener = {
-  handler: (update: TodoUpdate) => void;
-};
-
 export const getTodoStream = createServerFn().handler(() =>
   distributor.getSteam(),
 );
 
-export const listTodos = createServerFn({ method: "GET" }).handler(
+export const fetchTodos = createServerFn().handler(
   async () => await caldav.listTodos(),
 );
 
-export const addTodo = createServerFn({ method: "POST" })
+export const addTodo = createServerFn()
   .inputValidator((input: { title: string }) => input)
   .handler(async ({ data }) => {
     const todo = await caldav.addTodo(data.title);
@@ -172,7 +233,7 @@ export const addTodo = createServerFn({ method: "POST" })
     return todo;
   });
 
-export const updateTodo = createServerFn({ method: "POST" })
+export const updateTodo = createServerFn()
   .inputValidator(
     (input: { id: string; title?: string; completed?: boolean }) => input,
   )
@@ -186,39 +247,9 @@ export const updateTodo = createServerFn({ method: "POST" })
     return todo;
   });
 
-export const deleteTodo = createServerFn({ method: "POST" })
+export const deleteTodo = createServerFn()
   .inputValidator((input: { id: string }) => input)
   .handler(async ({ data }) => {
     await caldav.deleteTodo(data.id);
     return { id: data.id };
   });
-
-export function useTodo(store: TodoStore, id: string) {
-  const [todo, setTodo] = React.useState<Todo>(get(store, id)!);
-  React.useEffect(() => {
-    setTodo(get(store, id)!);
-    return subscribe(store, id, setTodo);
-  }, [id]);
-  return {
-    todo,
-    toggle: async () => {
-      const completed = !todo.completed;
-      set(store, { ...todo, completed });
-      await updateTodo({ data: { id, completed } });
-    },
-    edit: async (title: string) => {
-      set(store, { ...todo, title });
-      await updateTodo({ data: { id, title } });
-    },
-    remove: async () => {
-      remove(store, id);
-      await deleteTodo({ data: { id } });
-    },
-  };
-}
-
-export function useOrder(store: TodoStore, orderFn: (todo: Todo[]) => Id[]) {
-  const [order, setOrder] = React.useState<Id[]>(getOrder(store, orderFn));
-  React.useEffect(() => subscribeToOrder(store, orderFn, setOrder), []);
-  return order;
-}

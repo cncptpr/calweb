@@ -1,9 +1,10 @@
+import { useTodo } from "@/data/hooks";
 import { useTodoStore } from "@/data/store";
 import * as Todo from "@/data/todos"
 
 export default function TodoItem(props: { id: Todo.Id }) {
   const store = useTodoStore()
-  const { todo, toggle, edit, remove } = Todo.useTodo(store, props.id);
+  const { todo, toggle, edit, remove } = useTodo(store, props.id);
   return (
     <li
       key={todo.id}
