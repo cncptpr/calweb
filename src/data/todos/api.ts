@@ -13,9 +13,11 @@ export const getTodoStream = createServerFn().handler(() => {
   return getStream(listeners);
 });
 
-export const fetchTodos = createServerFn().handler(
-  async () => await caldav.fetchTodos(),
-);
+export const fetchTodos = createServerFn().handler(async () => {
+  const todos = await caldav.fetchTodos();
+  updateStore(todoStore, { tag: "replace", todos });
+  return todos;
+});
 
 export const updateAndSend = createClientOnlyFn(
   async (store: TodoStore, todoUpdate: TodoUpdate) => {
