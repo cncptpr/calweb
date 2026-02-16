@@ -6,7 +6,8 @@ import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import appCss from '../styles.css?url'
-import { todoStore, TodoStoreContext } from '@/data/store'
+import { TodoStoreContext } from '@/data/todos/react'
+import { todoStore } from '@/data/todos/instances'
 
 export const Route = createRootRoute({
   head: () => ({

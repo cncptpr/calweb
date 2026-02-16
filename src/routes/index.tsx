@@ -1,8 +1,8 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { TodoList } from "@/components/TodoList";
-import { useTodoStore } from "@/data/store";
-import { generateId, updateAndSend } from "@/data/todos";
+import { useTodoStore } from "@/data/todos/react";
+import { updateAndSend } from "@/data/todos/api";
 
 export const Route = createFileRoute("/")({
   component: TodoApp,
@@ -25,7 +25,10 @@ function AddTodo() {
   const [text, setText] = React.useState("");
   async function onAdd(title: string) {
     if (title.trim().length) {
-      updateAndSend(store, {type:"add", todo: {id: generateId(), title: title.trim(), completed:false}})
+      updateAndSend(store, {
+        tag: "add",
+        summary: title.trim(),
+      });
       setText("");
     }
   }

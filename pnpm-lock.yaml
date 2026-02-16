@@ -56,6 +56,9 @@ importers:
       ts-caldav:
         specifier: ^0.2.7
         version: 0.2.7
+      ts-pattern:
+        specifier: ^5.9.0
+        version: 5.9.0
       tsdav:
         specifier: ^2.1.6
         version: 2.1.7
@@ -3612,6 +3615,9 @@ packages:
 
   ts-caldav@0.2.7:
     resolution: {integrity: sha512-llOwH4t1FUXWyIi9eWOpbFVIbe9HsMNTBCuDxSZY7MXjbgsJ0mPQYw1O+E8y5BrYE04QHvViuhh2pafy9QyXKw==}
+
+  ts-pattern@5.9.0:
+    resolution: {integrity: sha512-6s5V71mX8qBUmlgbrfL33xDUwO0fq48rxAu2LBE11WBeGdpCPOsXksQbZJHvHwhrd3QjUusd3mAOM5Gg0mFBLg==}
 
   tsconfck@3.1.6:
     resolution: {integrity: sha512-ks6Vjr/jEw0P1gmOVwutM3B7fWxoWBL2KRDb1JfqGVawBmO5UsvmWOQFGHBPl5yxYz4eERr19E6L7NMv+Fej4w==}
@@ -8033,6 +8039,8 @@ snapshots:
       uuid: 11.1.0
     transitivePeerDependencies:
       - debug
+
+  ts-pattern@5.9.0: {}
 
   tsconfck@3.1.6(typescript@5.9.3):
     optionalDependencies:

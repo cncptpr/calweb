@@ -1,27 +1,23 @@
-import * as Todo from "@/data/todos";
-import { todoStore } from "@/data/store";
-import { createServerFn } from "@tanstack/react-start";
-import { listTodos } from "./caldavService";
+import { TodoUpdate } from "@/data/todos/update";
 
-export const sendUpdate = createServerFn()
-  .inputValidator((update: Todo.TodoUpdate) => update)
-  .handler(async ({ data }) => {
-    Todo.update(todoStore, data);
+export type Listener = { handler?: (update: TodoUpdate) => void };
 
-    const unsubscribe = Todo.subscribe(todoStore, ()=>);
-  });
+export function distibluteUpdate(listeners: Set<Listener>, update: TodoUpdate) {
+  listeners.forEach((l) => l.handler?.(update));
+}
 
-export function getSteam(): ReadableStream {
+export function getSteam(listeners: Set<Listener>): ReadableStream {
   console.log("[DEBUG] creating Distributor");
-  const listener = Todo.addListener(todoStore);
-  const stream = new ReadableStream<Todo.TodoUpdate>({
+  const listener: Listener = {};
+  listeners.add(listener);
+  const stream = new ReadableStream<TodoUpdate>({
     pull(controller) {
       listener.handler = (update) => {
         controller.enqueue(update);
       };
     },
     cancel() {
-      Todo.removeListener(todoStore, listener);
+      listeners.delete(listener);
       console.log("Removed Listener");
     },
   });

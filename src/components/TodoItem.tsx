@@ -1,36 +1,36 @@
-import { useTodo } from "@/data/hooks";
-import { useTodoStore } from "@/data/store";
-import * as Todo from "@/data/todos"
+import { Id, isCompleted } from "@/data/todos";
+import { useTodo, useTodoStore } from "@/data/todos/react";
 
-export default function TodoItem(props: { id: Todo.Id }) {
+export default function TodoItem(props: { id: Id }) {
   const store = useTodoStore()
   const { todo, toggle, edit, remove } = useTodo(store, props.id);
+  const completed = isCompleted(todo)
   return (
     <li
-      key={todo.id}
+      key={todo.uid}
       className="flex items-center justify-between bg-white p-3 rounded shadow"
     >
       <button
         onClick={() => toggle()}
         className="mr-2"
-        aria-label={todo.completed ? "Mark incomplete" : "Mark complete"}
+        aria-label={completed ? "Mark incomplete" : "Mark complete"}
       >
         <span
-          className={`w-5 h-5 border rounded-full flex items-center justify-center ${todo.completed ? "bg-green-400 border-green-400" : "border-gray-400"}`}
+          className={`w-5 h-5 border rounded-full flex items-center justify-center ${completed ? "bg-green-400 border-green-400" : "border-gray-400"}`}
         >
-          {todo.completed ? <span className="text-white">✓</span> : ""}
+          {completed ? <span className="text-white">✓</span> : ""}
         </span>
       </button>
       <span
-        className={`flex-1 ${todo.completed ? "line-through text-gray-400" : "text-gray-900"} text-lg`}
+        className={`flex-1 ${completed ? "line-through text-gray-400" : "text-gray-900"} text-lg`}
       >
-        {todo.title}
+        {todo.summary}
       </span>
       <button
         className="ml-2 text-blue-500 hover:text-blue-700 px-2 py-1"
         onClick={() => {
-          const newTitle = prompt("Edit todo:", todo.title);
-          if (newTitle !== null && newTitle !== todo.title) edit(newTitle);
+          const newTitle = prompt("Edit todo:", todo.summary);
+          if (newTitle !== null && newTitle !== todo.summary) edit(newTitle);
         }}
         aria-label="Edit"
       >

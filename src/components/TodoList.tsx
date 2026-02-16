@@ -1,6 +1,5 @@
 import TodoItem from "@/components/TodoItem";
-import { useOrder } from "@/data/hooks";
-import { useTodoStore } from "@/data/store";
+import { useOrder, useTodoStore } from "@/data/todos/react";
 
 export function TodoList() {
   const store = useTodoStore()
@@ -8,7 +7,7 @@ export function TodoList() {
     [
       ...todos.filter((t) => !t.completed),
       ...todos.filter((t) => t.completed),
-    ].map((todo) => todo.id),
+    ].map((todo) => todo.uid),
   );
   return (
     <div className="p-4 max-w-md mx-auto">
