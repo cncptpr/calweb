@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createIsomorphicFn, createServerFn } from "@tanstack/react-start";
 import * as caldav from "../server/caldavService";
 import { getSteam as getStream, sendUpdate } from "@/server/distributeService";
 
@@ -81,6 +81,20 @@ export function subscribe(
   store._subscribers.get(id)!.add(cb);
   return function unsubscribe() {
     store._subscribers.get(id)?.delete(cb);
+export function subscribeToOrder(
+  store: TodoStore,
+  orderFn: (todos: Todo[]) => Id[],
+  cb: (todos: Id[]) => void,
+  lastOrder?: Id[],
+): () => void {
+  const subscriber: OrderSubscriber = {
+    cb,
+    orderFn,
+    lastOrder: lastOrder ?? getOrder(store, orderFn),
+  };
+  store._orderSubscribers.add(subscriber);
+  return function unsubscribe() {
+    store._orderSubscribers.delete(subscriber);
   };
 }
 
@@ -99,10 +113,12 @@ export function serverUpdate(store: TodoStore, todoUpdate: TodoUpdate) {
   update(store, todoUpdate);
 }
 
-export function optimisicUpdate(store: TodoStore, todoUpdate: TodoUpdate) {
-  update(store, todoUpdate);
-  sendUpdate({ data: todoUpdate });
-}
+export const updateAndSend = createIsomorphicFn().client(
+  async (store: TodoStore, todoUpdate: TodoUpdate) => {
+    update(store, todoUpdate);
+    await sendUpdate({ data: todoUpdate });
+  },
+);
 
 export function update(store: TodoStore, update: TodoUpdate): void {
   function rec(store: TodoStore, update: TodoUpdate) {

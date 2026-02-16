@@ -1,5 +1,6 @@
 import React from "react";
 import * as Todo from "@/data/todos";
+import { createIsomorphicFn } from "@tanstack/react-start";
 
 export const todoStore = Todo.createStore([]);
 export const TodoStoreContext = React.createContext<Todo.TodoStore>(todoStore);
@@ -11,7 +12,7 @@ export function useTodoStore() {
 Todo.fetchTodos().then((todos) =>
   Todo.serverUpdate(todoStore, { type: "replace", todos }),
 );
-setTimeout(async () => {
+createIsomorphicFn().client(async () => {
   const stream = await Todo.getTodoStream();
   const reader = stream.getReader();
 
@@ -21,4 +22,4 @@ setTimeout(async () => {
     const update = result.value!;
     Todo.serverUpdate(todoStore, update);
   }
-}, 0);
+})();

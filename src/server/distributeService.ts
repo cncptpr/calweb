@@ -1,11 +1,14 @@
 import * as Todo from "@/data/todos";
 import { todoStore } from "@/data/store";
 import { createServerFn } from "@tanstack/react-start";
+import { listTodos } from "./caldavService";
 
 export const sendUpdate = createServerFn()
   .inputValidator((update: Todo.TodoUpdate) => update)
-  .handler(({ data }) => {
+  .handler(async ({ data }) => {
     Todo.update(todoStore, data);
+
+    const unsubscribe = Todo.subscribe(todoStore, ()=>);
   });
 
 export function getSteam(): ReadableStream {

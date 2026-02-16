@@ -2,7 +2,7 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { TodoList } from "@/components/TodoList";
 import { useTodoStore } from "@/data/store";
-import { generateId, optimisicUpdate } from "@/data/todos";
+import { generateId, updateAndSend } from "@/data/todos";
 
 export const Route = createFileRoute("/")({
   component: TodoApp,
@@ -25,7 +25,7 @@ function AddTodo() {
   const [text, setText] = React.useState("");
   async function onAdd(title: string) {
     if (title.trim().length) {
-      optimisicUpdate(store, {type:"add", todo: {id: generateId(), title: title.trim(), completed:false}})
+      updateAndSend(store, {type:"add", todo: {id: generateId(), title: title.trim(), completed:false}})
       setText("");
     }
   }
