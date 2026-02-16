@@ -5,8 +5,8 @@ export function TodoList() {
   const store = useTodoStore()
   const order = useOrder(store, (todos) =>
     [
-      ...todos.filter((t) => !t.completed),
-      ...todos.filter((t) => t.completed),
+      ...todos.filter((t) => !t.completed).sort((a, b)=>a.uid.localeCompare(b.uid)),
+      ...todos.filter((t) => t.completed).sort((a, b)=>a.uid.localeCompare(b.uid)),
     ].map((todo) => todo.uid),
   );
   return (

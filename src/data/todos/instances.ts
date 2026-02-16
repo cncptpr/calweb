@@ -25,7 +25,9 @@ createIsomorphicFn()
     }
   })
   .server(async () => {
-    caldav
-      .fetchTodos()
-      .then((todos) => updateStore(todoStore, { tag: "replace", todos }));
+    setTimeout(() => {
+      caldav
+        .fetchTodos()
+        .then((todos) => updateStore(todoStore, { tag: "replace", todos }));
+    }, 10000);
   })();
